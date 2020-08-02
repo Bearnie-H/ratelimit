@@ -28,9 +28,10 @@ func (R *RateReader) Read(p []byte) (n int, err error) {
 	// Check how much room there is to read
 	l := int((float64(time.Now().Sub(R.lastRead)) / float64(time.Second)) * float64(R.rate))
 
-	// If there's no room, do nothing
+	// If there's no room, sleep until there is room to read a byte.
 	if l <= 0 {
-		return 0, nil
+		time.Sleep(time.Until(R.lastRead.Add(time.Duration(float64(time.Second) / float64(R.rate)))))
+		return R.Read(p)
 	}
 
 	// If there is room, defer a call to update when the last read occurred
